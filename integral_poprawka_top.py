@@ -2,6 +2,34 @@ import pandas as pd
 import math
 import numpy as np
 
+# mathematical formula #1.1
+def freeair_anomaly(h):
+    return 0.3086 * h
+
+# mathematical formula #1.2
+def gravity_intensity(g, delta_gh):
+    return g + delta_gh
+
+# mathematical formula #2.1
+def bouger_anomaly_gf(delta_gh, p, h):
+    return delta_gh + (0.04187 * p * h)
+
+# mathematical formula #2.2
+def gravity_value_bouger_anomaly_gf(g, delta_gB):
+    return g + delta_gB
+
+# mathematical formula #2.3
+def incomplete_gravity_value_bouger_anomaly_gf(g0e, gamma0):
+    return g0e - gamma0
+
+# mathematical formula #3
+def full_bouger_anomaly_gravity(delta_gt, delta_gh, p, h):
+    return delta_gt + delta_gh + (0.04187 * p * h)
+
+# mathematical formula #4
+def normal_gravity(fi):
+    return 978032.67715 * (1 + 0.00530244 * math.sin(fi)**2 - 0.0000058495 * math.sin(2 * fi)**2) #[mGal] B => fi
+
 # import excel file with our data from buffers
 wb = pd.read_excel('raw_data_cleaned.xlsx')
 
@@ -12,6 +40,11 @@ h_table_excel = wb["Hnorm"]
 x_table_excel = wb["X"]
 y_table_excel = wb["Y"]
 z_table_excel = wb["Z"]
+# additional
+g_table_excel = wb["g"]
+h_normal_table_excel = wb["H"]
+
+
 
 h_mean = 0
 x_mean = 0
@@ -33,6 +66,44 @@ yp_table = []
 g_table = []
 hp_table = []
 duplicate_dict = {}
+
+# additional
+delta_gh = []
+go_prim = []
+delta_go_prim = []
+gamma0 = []
+delta_gB = []
+p = 0.2670 # average density of the topographic mass
+g0e = []
+delta_g0e = []
+
+# mathematical formula #4
+for n in range(len(wb)):
+    gamma0.append(normal_gravity(wb["B"][n]))
+
+# mathematical formula #1.1
+for n in range(len(wb)):
+    delta_gh.append(freeair_anomaly(wb["H"][n]))
+
+# mathematical formula #1.2
+for n in range(len(wb)):
+    go_prim.append(gravity_intensity(wb["g"][n],delta_gh[n]))
+
+# mathematical formula #1.3
+for n in range(len(wb)):
+    delta_go_prim.append(gravity_intensity(go_prim[n],gamma0[n]))
+
+# mathematical formula #2.1
+for n in range(len(wb)):
+    delta_gB.append(bouger_anomaly_gf(delta_gh[n], p, wb["H"][n]))
+
+# mathematical formula #2.2
+for n in range(len(wb)):
+    g0e.append(gravity_value_bouger_anomaly_gf(wb["g"][n], delta_gB[n]))
+
+# mathematical formula #2.3
+for n in range(len(wb)):
+    delta_g0e.append(incomplete_gravity_value_bouger_anomaly_gf(g0e[n], gamma0[n]))
 
 # create tables with means for object id's
 for n in range(len(wb["OBJECTID_1"])):
@@ -160,3 +231,10 @@ for object_n, data in grouped_data.items():
 df.insert(9, 'TCR', TCR_results) # Adding TCR to our dataframe
 df.to_excel("points_data.xlsx", index=False) # Exporting data to excel
 df.to_csv("points_data.csv", index=False)
+
+
+#p = 0.2670 # average density of the topographic mass
+#print(df["TCR"])
+# mathematical formula #3
+#for n in range(len(wb)):
+    #delta_g0e.append(full_bouger_anomaly_gravity(TCR_results[n], delta_gh[n], p, wb["H"][n]))
