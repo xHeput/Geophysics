@@ -23,12 +23,18 @@ def incomplete_gravity_value_bouger_anomaly_gf(g0e, gamma0):
     return g0e - gamma0
 
 # mathematical formula #3
-def full_bouger_anomaly_gravity(delta_gt, delta_gh, p, h):
-    return delta_gt + delta_gh + (0.04187 * p * h)
+def full_bouger_anomaly_gravity(delta_gt, p, h):
+    return delta_gt + (0.3086 * h) - (0.04187 * p * h)
 
 # mathematical formula #4
 def normal_gravity(fi):
     return 978032.67715 * (1 + 0.00530244 * math.sin(fi)**2 - 0.0000058495 * math.sin(2 * fi)**2) #[mGal] B => fi
+
+def gravity_intensity_reduced(g, delta_gB):
+    return g + delta_gB
+
+def full_gravity_intensity_reduced(g0_prim_prim, B):
+    return g0_prim_prim - normal_gravity(B)
 
 # import excel file with our data from buffers
 wb = pd.read_excel('raw_data_cleaned.xlsx')
@@ -76,6 +82,9 @@ delta_gB = []
 p = 0.2670 # average density of the topographic mass
 g0e = []
 delta_g0e = []
+delta_gB_TCR = []
+g0_prim_prim = []
+delta_g0_prim_prim = []
 
 # mathematical formula #4
 for n in range(len(wb)):
@@ -154,9 +163,9 @@ for k in range(len(wb["OBJECTID_1"])):
 # joining all data in one table
 for i in range(len(objectid_table)):
     dic = {"ID": objectid_table[i], 
-            "Xp": yp_table[i], 
-            "Yp": xp_table[i],
-            "Hp": hp_table[i], 
+            "NG": yp_table[i], 
+            "EG": xp_table[i],
+            "H": hp_table[i], 
             "g": g_table[i],
             "X": y_table[i], 
             "Y": x_table[i], 
@@ -168,7 +177,7 @@ for i in range(len(objectid_table)):
 df = pd.DataFrame(data) # dataframe with data needed to do TCR equations
 pi = math.pi
 k = 6.67508 * (10 ** -11) # Newton gravitonal consant
-p = 2670 # average density of the topographic mass
+p = 0.2670 # average density of the topographic mass
 
 grouped_data = {}
 
@@ -228,13 +237,38 @@ for object_n, data in grouped_data.items():
         eq_values.append(TCR)
     TCR_results.append(np.sum(eq_values)) # Sum of single equations
 
+
 df.insert(9, 'TCR', TCR_results) # Adding TCR to our dataframe
+
+
+
+p = 0.2670 # average density of the topographic mass
+
+# mathematical formula #3.1
+for n in range(len(df)):
+    delta_gB_TCR.append(full_bouger_anomaly_gravity(df["TCR"][n], p, df["H"][n]))
+
+
+
+# mathematical formula #3.2
+for n in range(len(df)):
+    g0_prim_prim.append(gravity_intensity_reduced(df["g"][n], delta_gB_TCR[n]))
+
+df.insert(10, "delta_gB'", g0_prim_prim) # Adding TCR to our dataframe
+
+# import excel file with our data from buffers
+chuj = pd.read_excel('graw_dane_area.xlsx')
+
+# mathematical formula #3.3
+for n in range(len(df)):
+    delta_g0_prim_prim.append(full_gravity_intensity_reduced(g0_prim_prim[n], chuj["B"][n]))
+
+df.insert(11, "delta_g0''", delta_g0_prim_prim) # Adding TCR to our dataframe
+
+
 df.to_excel("points_data.xlsx", index=False) # Exporting data to excel
 df.to_csv("points_data.csv", index=False)
 
 
-#p = 0.2670 # average density of the topographic mass
-#print(df["TCR"])
-# mathematical formula #3
-#for n in range(len(wb)):
-    #delta_g0e.append(full_bouger_anomaly_gravity(TCR_results[n], delta_gh[n], p, wb["H"][n]))
+print("All done!")
+
