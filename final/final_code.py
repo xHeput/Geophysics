@@ -2,6 +2,15 @@ import pandas as pd
 import math
 import numpy as np
 
+def unikalne_w_kolejnosci(wb):
+    unikalne_wartosci = []  # Inicjalizujemy listę, w której przechowamy unikalne wartości w kolejności ich występowania
+
+    for value in wb["OBJECTID_1"]:
+        if value not in unikalne_wartosci:  # Jeśli wartość nie znajduje się jeszcze w liście unikalnych wartości
+            unikalne_wartosci.append(value)  # Dodaj ją do listy
+
+    return unikalne_wartosci
+
 # mathematical formula #1.1
 def freeair_anomaly(h):
     return 0.3086 * h
@@ -35,6 +44,22 @@ def TCR(wb, k, p):
     
     return (k * p * eq) / 100000
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # mathematical formula #3.1.1
 def full_bouger_anomaly_gravity(delta_gt, p, h):
     return delta_gt + (0.3086 * h) - (0.04187 * p * h)
@@ -51,6 +76,9 @@ def full_gravity_intensity_reduced(g0_prim_prim, B):
 
 # import excel file with our data from buffers
 wb = pd.read_excel('raw_data_cleaned.xlsx')
+
+# Wywołanie funkcji szukającej unikalnych wartości w kolumnie "OBJECTID_1" w ramce danych df
+unique = unikalne_w_kolejnosci(wb)
 # variables
 pi = math.pi
 k = 6.67508 * (10 ** -11) # Newton gravitonal consant
