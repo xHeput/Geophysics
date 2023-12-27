@@ -111,7 +111,8 @@ df2 = []
 
 df2 = pd.DataFrame(unique)
 
-df2.insert(1, 'TCR',TCR_result)  # Adding TCR to our dataframe
-df2.insert(2,'Hnorm',groupped_data["Hp"])  # Adding terrain mean to our dataframe
-df2.insert(3,'Height_diff',h_diff_table)  # Adding heights difference to dataframe
-df2.to_excel("dane_graw_tcr_v2.xlsx", index=False)  # Exporting dataframe to excel
+df2.insert(1, 'TCR',TCR_result)  
+df2.insert(2,'Hnorm',groupped_data["Hp"])  
+df2.insert(3,'Height_diff',h_diff_table)  
+df2.to_excel("dane_graw_tcr_v2.xlsx", index=False)  
+df2.to_csv("dane_graw_tcr_v2.csv", index=False)  
